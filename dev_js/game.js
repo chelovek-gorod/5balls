@@ -5,16 +5,25 @@ import { smoothShowElement } from './functions'
 import { playMusic } from './sound'
 import { encode, decode } from './decoder'
 import { initState } from './state'
+import { EventHub, events } from './events'
 
-export function clickCeil(key) {
-    if (!isClickAvailable) return
-
-    const color = state.getTurn()
-    board.getClick(key, color, () => isClickAvailable = true )
-    isClickAvailable = false
+const lang = navigator.language || navigator.userLanguage
+let isLangRu = !!(~lang.indexOf('ru'))
+export function checkLangRu() {
+    return isLangRu
 }
 
 let isClickAvailable = false
+EventHub.on( events.activateUI, setUIActivation )
+function setUIActivation( data ) {
+    isClickAvailable = data
+}
+export function clickCeil(key) {
+    if (!isClickAvailable) return
+
+    isClickAvailable = false
+    board.getClick(key)
+}
 
 let state = null
 let board = null
@@ -24,8 +33,7 @@ export function startGame() {
     state = initState()
     
     const screenData = getAppScreen()
-    const startColors = state.getStartColors()
-    board = getBoard( screenData, startColors, state.getUseColor.bind(state), state.getAddColor.bind(state) )
+    board = getBoard( screenData, state )
     smoothShowElement( new Layer( new Background(screenData) ) , 'center', () => {
         boardLayer = new Layer(board)
         smoothShowElement( boardLayer )

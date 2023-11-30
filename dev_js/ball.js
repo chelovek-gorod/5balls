@@ -63,8 +63,8 @@ const mixinBall = {
             this.alpha -= delta * this.alphaRate
             if (this.alpha <= 0) {
                 tickerRemove( this )
-                if (this.callback) setTimeout(() => this.callback(), 0)
-                return removeSprite( this )
+                if (this.callback) this.callback()
+                setTimeout( () => removeSprite(this), 0 )
             }
         }
     }

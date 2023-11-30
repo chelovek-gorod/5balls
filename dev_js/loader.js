@@ -13,8 +13,14 @@ export const sprites = {
     bg: 'bright_wood_800x800px.jpg',
     balls: 'balls_150x150px_90frames.json',
     board: 'game_board_1480x1480px.png',
+    pointer: 'pointer_220x220px.png',
     lock: 'lock_116x126px.png',
-    keys: 'keys_192x192px.png',
+    keys: 'keys_240x240px.png',
+    effectYellow: 'effect_yellow_528x528px.png',
+    effectPurple: 'effect_purple_528x528px.png',
+    smoke: 'smoke_192x192px_25frames.json',
+    disappearance: 'disappearance_128x128px_20frames.json',
+    destroyer: 'destroyer_240x240px.png',
     logo: '5balls_876x568px.png',
     mars: 'mars_game_456x137px.png',
     buttons: 'buttons.json',
@@ -30,6 +36,8 @@ for (let sprite in sprites) sprites[sprite] = paths.sprites + sprites[sprite]
 export const sounds = {
     await: 'se_await.mp3',
     bell: 'se_bell.mp3',
+    bonus: 'se_bonus.mp3',
+    out: 'se_out.mp3',
     clear1: 'se_clear_line_1.mp3',
     clear2: 'se_clear_line_2.mp3',
     clear3: 'se_clear_line_3.mp3',
@@ -42,6 +50,7 @@ export const sounds = {
     unlock: 'se_unlock.mp3',
     closed: 'se_closed.mp3',
     whips: 'se_whips.mp3',
+    swipe: 'se_swipe.mp3',
     wooden: 'se_wooden.mp3',
 }
 const soundsNumber = Object.keys(sounds).length

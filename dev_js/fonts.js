@@ -20,28 +20,41 @@ export function initFontStyles() {
             dropShadowDistance: 0,
         }),
 
-        scores: new TextStyle({
-            fontFamily: fonts.regular,
-            fontSize: 32,
-            fill: ['#112233', '#555555', '#112233'],
-            align: 'left',
+        score: new TextStyle({
+            fontFamily: fonts.semiBold,
+            fontSize: 72,
+            fill: '#000000',
+            align: 'center',
 
             dropShadow: true,
             dropShadowColor: '#ffffff',
-            dropShadowBlur: 6,
+            dropShadowBlur: 12,
             dropShadowAngle: 0,
             dropShadowDistance: 0,
         }),
 
-        attempts: new TextStyle({
-            fontFamily: fonts.regular,
-            fontSize: 32,
+        scoreRecord: new TextStyle({
+            fontFamily: fonts.bold,
+            fontSize: 36,
+            fill: '#000000',
+            align: 'center',
+
+            dropShadow: true,
+            dropShadowColor: '#ffffff',
+            dropShadowBlur: 12,
+            dropShadowAngle: 0,
+            dropShadowDistance: 0,
+        }),
+
+        fly: new TextStyle({
+            fontFamily: fonts.bold,
+            fontSize: 96,
             fill: ['#112233', '#555555', '#112233'],
             align: 'right',
 
             dropShadow: true,
             dropShadowColor: '#ffffff',
-            dropShadowBlur: 6,
+            dropShadowBlur: 18,
             dropShadowAngle: 0,
             dropShadowDistance: 0,
         }),

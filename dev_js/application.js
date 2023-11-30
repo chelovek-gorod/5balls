@@ -65,8 +65,8 @@ export function clearContainer( container ) {
     }
 }
 
-export function removeSprite( sprite ) {
-    sprite.parent.removeChild( sprite )
+export function removeSprite( sprite ) { if ('currentCeil' in sprite) console.log ( 'BALL currentCeil:', sprite.currentCeil )
+    if (sprite.parent) sprite.parent.removeChild( sprite )
     sprite.destroy( {children : true} )
 }
 

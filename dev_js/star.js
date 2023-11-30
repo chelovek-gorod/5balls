@@ -1,12 +1,13 @@
 import { Sprite } from 'pixi.js'
 import { sprites } from "./loader"
-import { tickerAdd, tickerRemove, removeSprite,  } from './application'
+import { tickerAdd, tickerRemove, removeSprite } from './application'
 
 const settings = {
     stars: 5,
-    size: 120,
+    size: 100,
+    maxSize: 150,
     offset: 70,
-    scaleRate: 120
+    scaleRate: 60,
 }
 settings.delay = settings.scaleRate / settings.stars
 
@@ -25,16 +26,16 @@ function getStarSprite(color) {
 }
 
 class Star extends Sprite {
-    constructor(color, x, y, delay) {
+    constructor(color, x, y, delay, maxSize) {
         super( sprites.stars.textures[ getStarSprite(color) ] )
         this.delay = delay
         this.anchor.set(0.5)
-        //this.color = color
+        this.maxSize = maxSize
         this.pointX = x
         this.pointY = y
         this.stateScale = 0
         this.scaleRate = settings.scaleRate
-        this.width = this.height = settings.size * this.stateScale
+        this.width = this.height = this.maxSize * this.stateScale
         this.alpha = 1
         this.changePosition()
         tickerAdd( this )
@@ -62,7 +63,7 @@ class Star extends Sprite {
                 this.changePosition()
             }
         }
-        this.width = this.height = settings.size * this.stateScale
+        this.width = this.height = this.maxSize * this.stateScale
     }
 
     disappear() {
@@ -70,10 +71,14 @@ class Star extends Sprite {
     }
 }
 
-export default function getStars(color, x, y) {
+export default function getStars(color, x, y, isMaxSize = false) {
     const stars = []
+    let colors = []
+    if (color === 'color' ) colors = ['red', 'yellow', 'green', 'blue', 'purple', 'brown', 'aqua', 'stone', 'pink'].sort(()=> Math.random - 0.5)
+    else for (let i = 0; i < settings.stars; i++) colors.push(color)
     for (let i = 0; i < settings.stars; i++) {
-        stars.push( new Star(color, x, y, settings.delay * i ) )
+        const size = isMaxSize ? settings.maxSize : settings.size
+        stars.push( new Star(colors[i], x, y, settings.delay * i, size ) )
     }
     return stars
 }

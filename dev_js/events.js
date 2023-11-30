@@ -4,10 +4,15 @@ export const EventHub = new utils.EventEmitter()
 
 export const events = {
     screenResize: 'screenResize',
+    activateUI: 'activateUI',
 }
 
 export function screenResize( data ) {
     EventHub.emit( events.screenResize, data )
+}
+
+export function activateUI( data ) {
+    EventHub.emit( events.activateUI, data )
 }
 
 /*

@@ -7,45 +7,52 @@ const ballsOrder = [
     { color: ballKeys.green, closed: 0},
     { color: ballKeys.blue, closed: 0},
 
-    { color: ballKeys.purple, closed: 25},
-    { color: ballKeys.brown, closed: 50},
-    { color: ballKeys.aqua, closed: 100},
-    { color: ballKeys.pink, closed: 200},
-    { color: ballKeys.stone, closed: 500},
+    { color: ballKeys.purple, closed: 50}, // 50
+    { color: ballKeys.brown, closed: 125}, // 75  +25
+    { color: ballKeys.aqua, closed: 250},  // 125 +50
+    { color: ballKeys.pink, closed: 450},  // 200 +75
+    { color: ballKeys.stone, closed: 750}, // 300 +100
 ]
 
 const settings = {
     ballsAtStart: 8,
-    nextKeyTurnsRate: 2,
-    nextColorBallTurnsAdd: 5,
-    minReserveUseSize: 12,
-    maxReserveUseSize: 36,
+    maxKeys: 30,
+    nextKey: 5,
+    nextRemove: 5,
+    nextRemoveAdd: 1,
+    nextColorBallTurn: 5,
+    minReserveUseSize: 8,
+    maxReserveUseSize: 24,
 }
 
 /*
-keys add
-1 = 1
-2 = 3
-2 = 5
-3 = 8
-3 = 11
-3 = 14
-4 = 18
-4 = 22
-4 = 26
-4 = 30
+keys
+turns   :  add = all
+10 (10) = 1(1) :  1..2
+25 (15) = 2(2) :  3..6   
+40 (15) = 2(2) :  5..10
+60 (20) = 3(3) :  8..16
+80 (20) = 3(3) : 11..22
+100(20) = 3(3) : 14..28
+125(25) = 4(4) : 18..30
+150(25) = 4(4) : 22..30
+175(25) = 4(4) : 26..30
+200(25) = 4(4) : 30..30
 */
 
 class State {
     constructor() {
         this.score = 0
-        this.topScore = 0
+        this.record = 0
 
         this.turns = 0
         this.closedBalls = 0
 
-        this.turnForKey = 10
-        this.turnForColorBall = settings.nextColorBallTurnsAdd
+        this.keys = settings.maxKeys
+        this.turnForBonus = settings.nextKey
+        this.turnForRemove = settings.nextRemove
+        this.turnForColorBall = settings.nextColorBallTurn
+        this.colorBallRate = 1
 
         this.reserveUse = []
         this.reserveAdd = []
@@ -54,7 +61,6 @@ class State {
 
         // for count balls index to add in reserveUse
         this.nextColorIndex = 0
-        this.colorBallRate = 1
 
         // get data from localStorage
         // or set start sate
@@ -64,19 +70,36 @@ class State {
     getState() {
         return {
             score: this.score,
-            topScore: this.topScore,
+            record: this.record,
             turns: this.turns,
             closedBalls: this.closedBalls,
-            turnForKey: this.turnForKey,
+            keys: this.keys,
+            turnForBonus: this.turnForBonus,
+            turnForRemove: this.turnForRemove,
+            turnForColorBall: this.turnForColorBall,
+            colorBallRate: this.colorBallRate,
             turnForColorBall: this.turnForColorBall,
             reserveUse: [...this.reserveUse],
             reserveAdd: [...this.reserveAdd],
+            nextColorIndex: this.nextColorIndex,
             board: getCeilsClone(),
         }
     }
 
-    getTurn() {
+    getTurn( callback ) {
         this.turns++
+        this.turnForBonus--
+        if (this.turnForBonus === 0) {
+            if (this.keys) {
+                this.keys--
+                this.turnForBonus = settings.nextKey
+                callback('lock')
+            } else {
+                this.turnForBonus = this.turnForRemove
+                this.turnForRemove += settings.nextRemoveAdd
+                callback('ball')
+            }
+        } 
         return this.getUseColor()
     }
 
@@ -114,10 +137,11 @@ class State {
                 this.reserveUse.push(ballKeys.color)
                 addedColors = []
                 this.colorBallRate++
-                this.turnForColorBall += settings.nextColorBallTurnsAdd * this.colorBallRate
+                this.turnForColorBall += settings.nextColorBallTurn + this.colorBallRate
             } else {
                 this.nextColorIndex++
-                if (ballsOrder[this.nextColorIndex].closed > this.closedBalls) this.nextColorIndex = 0
+                if ( this.nextColorIndex === ballsOrder.length
+                || ballsOrder[this.nextColorIndex].closed > this.closedBalls) this.nextColorIndex = 0
                 addedColors.push( ballsOrder[this.nextColorIndex].color )
             }
         }
@@ -150,6 +174,19 @@ class State {
             else index = 0
         }
         return colors
+    }
+
+    setClosed( count ) {
+        this.closedBalls += count
+    }
+
+    setScore( score ) {
+        this.score += score
+        if (this.score > this.record) this.record = this.score
+    }
+
+    getScore() {
+        return { score: this.score, record: this.record }
     }
 }
 
