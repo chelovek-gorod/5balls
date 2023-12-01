@@ -21,7 +21,7 @@ class Bonus extends Container {
         this.bg.alpha = 0
         this.addChild(this.bg)
 
-        this.image = new Sprite( isKey ? sprites.keys : sprites.destroyer )
+        this.image = new Sprite( isKey ? sprites.keys : sprites.hummers )
         this.image.anchor.set( 0.5 )
         this.image.scale.x = this.image.scale.y = 0
         this.addChild(this.image)

@@ -48,7 +48,7 @@ export function initFontStyles() {
 
         fly: new TextStyle({
             fontFamily: fonts.bold,
-            fontSize: 96,
+            fontSize: 64,
             fill: ['#112233', '#555555', '#112233'],
             align: 'right',
 

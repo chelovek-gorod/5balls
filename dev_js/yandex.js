@@ -80,6 +80,6 @@ class YandexSDK {
     }
 }
 
-const Yandex = ('YaGames' in window) ? new YandexSDK(YaGames) : null;
+const Yandex = ('YaGames' in window) ? new YandexSDK(YaGames) : null
 
 export default Yandex

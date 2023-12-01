@@ -28,6 +28,7 @@ export function clickCeil(key) {
 let state = null
 let board = null
 let boardLayer = null
+export let flyTextLayer = null
 
 export function startGame() {
     state = initState()
@@ -36,6 +37,7 @@ export function startGame() {
     board = getBoard( screenData, state )
     smoothShowElement( new Layer( new Background(screenData) ) , 'center', () => {
         boardLayer = new Layer(board)
+        flyTextLayer = new Layer()
         smoothShowElement( boardLayer )
     })
     

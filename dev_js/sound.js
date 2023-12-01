@@ -1,5 +1,5 @@
 import { sound } from '@pixi/sound'
-import { sounds, music } from './loader'
+import { music } from './loader'
 
 let isSoundOn = true
 

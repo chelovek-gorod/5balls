@@ -429,6 +429,8 @@ const labelSettings = {
     colorsTextEn: 'NEXT\nCOLOR',
     keysTextRu: 'СЛЕДУЮЩИЙ\nКЛЮЧ',
     keysTextEn: 'NEXT\nKEY',
+    hammersTextRu: 'СЛЕДУЮЩИЙ\nМОЛОТ',
+    hammersTextEn: 'NEXT\nHAMMER',
     colorsKeysTextCenterY: 260,
 
     keysX: boardSettings.size - 326,
@@ -604,23 +606,29 @@ class Board extends pixi_js__WEBPACK_IMPORTED_MODULE_0__.Container {
         this.colorsText.position.y = labelSettings.colorsKeysTextCenterY
         this.addChild(this.colorsText)
 
-        this.keys = new pixi_js__WEBPACK_IMPORTED_MODULE_0__.Sprite(_loader__WEBPACK_IMPORTED_MODULE_1__.sprites.keys)
-        this.keys.width = this.keys.height = labelSettings.keysSize
-        this.keys.position.x = labelSettings.keysX
-        this.keys.position.y = labelSettings.keysY
-        this.addChild(this.keys)
-
         this.keysText = isLangRu ? labelSettings.keysTextRu : labelSettings.keysTextEn
         this.keysText = new pixi_js__WEBPACK_IMPORTED_MODULE_0__.Text( this.keysText, _fonts__WEBPACK_IMPORTED_MODULE_8__.textStyles.scoreRecord )
         this.keysText.anchor.set( 0.5 )
         this.keysText.position.x = boardSettings.size - 190
         this.keysText.position.y = labelSettings.colorsKeysTextCenterY
+
+        this.keys = new pixi_js__WEBPACK_IMPORTED_MODULE_0__.Sprite(_loader__WEBPACK_IMPORTED_MODULE_1__.sprites.keys)
+        this.keys.width = this.keys.height = labelSettings.keysSize
+        this.keys.position.x = labelSettings.keysX
+        this.keys.position.y = labelSettings.keysY
+        
+        _events__WEBPACK_IMPORTED_MODULE_2__.EventHub.on( _events__WEBPACK_IMPORTED_MODULE_2__.events.changeBonus, () => {
+            this.keys.texture = _loader__WEBPACK_IMPORTED_MODULE_1__.sprites.hummers
+            this.keysText.text = isLangRu ? labelSettings.hammersTextRu : labelSettings.hammersTextEn
+        })
+
+        this.addChild(this.keys)
         this.addChild(this.keysText)
 
         this.turnsText = isLangRu ? labelSettings.turnsTextRu : labelSettings.turnsTextEn
         this.turnsText = new pixi_js__WEBPACK_IMPORTED_MODULE_0__.Text( this.turnsText, _fonts__WEBPACK_IMPORTED_MODULE_8__.textStyles.scoreRecord )
         this.turnsText.anchor.set( 0.5 )
-        this.turnsText.position.x = boardSettings.size - 170
+        this.turnsText.position.x = boardSettings.size - 160
         this.turnsText.position.y = labelSettings.scoreRecordTextCenterY
         this.addChild(this.turnsText)
 
@@ -778,7 +786,7 @@ class Board extends pixi_js__WEBPACK_IMPORTED_MODULE_0__.Container {
         } else {
             this.nextBall.ceilKey = this.getRandomCeil()
         }
-        console.log()
+
         if (this.nextBall.ceilKey) { 
             (0,_sound__WEBPACK_IMPORTED_MODULE_7__.playSound)(_loader__WEBPACK_IMPORTED_MODULE_1__.sounds.swipe)
             const ceilKey = this.nextBall.ceilKey
@@ -786,7 +794,7 @@ class Board extends pixi_js__WEBPACK_IMPORTED_MODULE_0__.Container {
             this.addStarsForNextBall()
             this.addBall( ceilKey, color )
         }
-        else console.log( "GAME OVER" )
+        else alert( "GAME OVER" )
     }
 
     addStarsForNextBall() {
@@ -827,7 +835,6 @@ class Board extends pixi_js__WEBPACK_IMPORTED_MODULE_0__.Container {
     checkColors( key ) {
         // update key label
         this.turns.text = this.gameState.turnForBonus
-        if (this.gameState.keys === 0) this.keys.texture = _loader__WEBPACK_IMPORTED_MODULE_1__.sprites.destroyer
 
         const color = this.state[key].sprite.color
         // collect colors in arrays by directions from current ceil
@@ -907,7 +914,7 @@ class Board extends pixi_js__WEBPACK_IMPORTED_MODULE_0__.Container {
                         const comboRange = lineIndex + 1
                         const scoreData = this.gameState.getScore()
                         const resultScore = score * comboRange
-                        this.addChild( new _flyingText__WEBPACK_IMPORTED_MODULE_12__["default"]('+' + resultScore) )
+                        _game__WEBPACK_IMPORTED_MODULE_3__.flyTextLayer.addChild( new _flyingText__WEBPACK_IMPORTED_MODULE_12__["default"]('+' + resultScore) )
                         this.gameState.setScore(resultScore)
                         this.score.text = this.scoreText + scoreData.score
                         this.scoreRecord.text = this.scoreRecordText + scoreData.record
@@ -922,37 +929,28 @@ class Board extends pixi_js__WEBPACK_IMPORTED_MODULE_0__.Container {
                 }
             }
         } else {
-            if (!this.nextBall.ceilKey) this.nextBall.ceilKey = this.getRandomCeil()
-            if (this.nextBall.ceilKey) {
-                let delay = 0
+            let delay = 300
+            let helpCeil = null
 
-                if (this.clickTarget === boardCeilFillKeys.lock) {
-                    this.addChild( new _bonus__WEBPACK_IMPORTED_MODULE_10__["default"](true, boardSettings.size / 2) )
-                    this.isOnHelp = true
-                    const ceil = this.getRandomCeil( boardCeilFillKeys.lock )
-                    if (ceil) {
-                        const helpX = this.state[ceil].position.x
-                        const helpY = this.state[ceil].position.y
-                        this.helpFinger.showHelp( helpX, helpY )
-                        delay = _bonus__WEBPACK_IMPORTED_MODULE_10__.bonusAnimationTime
-                    }
-                }
-
-                if (this.clickTarget === boardCeilFillKeys.ball) {
-                    this.addChild( new _bonus__WEBPACK_IMPORTED_MODULE_10__["default"](false, boardSettings.size / 2) )
-                    this.isOnHelp = true
-                    const ceil = this.getRandomCeil( boardCeilFillKeys.ball )
-                    if (ceil) {
-                        const helpX = this.state[ceil].position.x
-                        const helpY = this.state[ceil].position.y
-                        this.helpFinger.showHelp( helpX, helpY )
-                        delay = _bonus__WEBPACK_IMPORTED_MODULE_10__.bonusAnimationTime
-                    }
-                }
-
-                setTimeout( () => (0,_events__WEBPACK_IMPORTED_MODULE_2__.activateUI)(true), delay)
+            if (this.clickTarget === boardCeilFillKeys.lock) {
+                setTimeout( () => this.addChild( new _bonus__WEBPACK_IMPORTED_MODULE_10__["default"](true, boardSettings.size / 2) ), delay)
+                helpCeil = this.getRandomCeil( boardCeilFillKeys.lock )
+            } else if (this.clickTarget === boardCeilFillKeys.ball) {
+                setTimeout( () => this.addChild( new _bonus__WEBPACK_IMPORTED_MODULE_10__["default"](false, boardSettings.size / 2) ), delay)
+                helpCeil = this.getRandomCeil( boardCeilFillKeys.ball )
             }
-            else console.log( "GAME OVER" )
+
+            if (helpCeil) {
+                this.isOnHelp = true
+                const helpX = this.state[helpCeil].position.x
+                const helpY = this.state[helpCeil].position.y
+                this.helpFinger.showHelp( helpX, helpY )
+                delay += _bonus__WEBPACK_IMPORTED_MODULE_10__.bonusAnimationTime
+            }
+
+            if (!this.nextBall.ceilKey) this.nextBall.ceilKey = this.getRandomCeil()
+            if (this.nextBall.ceilKey || this.isOnHelp) setTimeout( () => (0,_events__WEBPACK_IMPORTED_MODULE_2__.activateUI)(true), delay)
+            else alert( "GAME OVER" )
         }
     }
 
@@ -983,13 +981,6 @@ function getBoard(screenData, state) {
     if (!board) board = new Board( screenData, state )
     return board
 }
-
-addEventListener('keyup', (key) => {
-    if (key.code === 'Space' && board) {
-        console.log(board.nextBall)
-        console.log(board.state)
-    }
-})
 
 /***/ }),
 
@@ -1033,7 +1024,7 @@ class Bonus extends pixi_js__WEBPACK_IMPORTED_MODULE_0__.Container {
         this.bg.alpha = 0
         this.addChild(this.bg)
 
-        this.image = new pixi_js__WEBPACK_IMPORTED_MODULE_0__.Sprite( isKey ? _loader__WEBPACK_IMPORTED_MODULE_1__.sprites.keys : _loader__WEBPACK_IMPORTED_MODULE_1__.sprites.destroyer )
+        this.image = new pixi_js__WEBPACK_IMPORTED_MODULE_0__.Sprite( isKey ? _loader__WEBPACK_IMPORTED_MODULE_1__.sprites.keys : _loader__WEBPACK_IMPORTED_MODULE_1__.sprites.hummers )
         this.image.anchor.set( 0.5 )
         this.image.scale.x = this.image.scale.y = 0
         this.addChild(this.image)
@@ -1139,11 +1130,12 @@ __webpack_require__.r(__webpack_exports__);
 
 
 class Effect extends pixi_js__WEBPACK_IMPORTED_MODULE_0__.AnimatedSprite {
-    constructor(x, y, isSmoke) {
-        super(isSmoke ? _loader__WEBPACK_IMPORTED_MODULE_1__.sprites.smoke.animations.smoke : _loader__WEBPACK_IMPORTED_MODULE_1__.sprites.disappearance.animations.disappearance)
+    constructor(x, y, isKey) {
+        super( isKey ? _loader__WEBPACK_IMPORTED_MODULE_1__.sprites.splash.animations.splash : _loader__WEBPACK_IMPORTED_MODULE_1__.sprites.smoke.animations.smoke )
         this.loop = false
         this.animationSpeed = 0.5
         this.updateAnchor = false
+        this.anchor.set(0.5)
         this.position.x = x
         this.position.y = y
         this.play()
@@ -1171,6 +1163,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   EventHub: () => (/* binding */ EventHub),
 /* harmony export */   activateUI: () => (/* binding */ activateUI),
+/* harmony export */   changeBonus: () => (/* binding */ changeBonus),
 /* harmony export */   events: () => (/* binding */ events),
 /* harmony export */   screenResize: () => (/* binding */ screenResize)
 /* harmony export */ });
@@ -1182,6 +1175,7 @@ const EventHub = new pixi_js__WEBPACK_IMPORTED_MODULE_0__.utils.EventEmitter()
 const events = {
     screenResize: 'screenResize',
     activateUI: 'activateUI',
+    changeBonus: 'changeBonus',
 }
 
 function screenResize( data ) {
@@ -1190,6 +1184,10 @@ function screenResize( data ) {
 
 function activateUI( data ) {
     EventHub.emit( events.activateUI, data )
+}
+
+function changeBonus() {
+    EventHub.emit( events.changeBonus )
 }
 
 /*
@@ -1232,9 +1230,6 @@ __webpack_require__.r(__webpack_exports__);
 const moveTime = 2400
 const scaleRate = 0.5 / ((moveTime / 2) / _functions__WEBPACK_IMPORTED_MODULE_3__.tick)
 const startTime = moveTime / 4
-const halfBoardSize = 740
-const halfPath = halfBoardSize / 2
-const speed = halfBoardSize / (moveTime / _functions__WEBPACK_IMPORTED_MODULE_3__.tick)
 const alphaAdd = 1 / (startTime / _functions__WEBPACK_IMPORTED_MODULE_3__.tick)
 const alphaSub = alphaAdd * 2
 
@@ -1245,15 +1240,21 @@ class FlyingText extends pixi_js__WEBPACK_IMPORTED_MODULE_0__.Text {
         this.scale.x = 0.5
         this.scale.y = 0.5
         this.alpha = 0
-        this.position.x = halfBoardSize
-        this.position.y = halfBoardSize
+
+        const screenData = (0,_application__WEBPACK_IMPORTED_MODULE_2__.getAppScreen)()
+
+        this.position.x = screenData.centerX
+        this.position.y = screenData.centerY
+        const halfBoardSize = screenData.centerY
+        this.halfPath = halfBoardSize / 2
+        this.speed = halfBoardSize / (moveTime / _functions__WEBPACK_IMPORTED_MODULE_3__.tick)
         ;(0,_application__WEBPACK_IMPORTED_MODULE_2__.tickerAdd)(this)
     }
 
     tick( delta ) {
-        this.position.y -= speed * delta
+        this.position.y -= this.speed * delta
         this.scale.x = this.scale.y = this.scale.x += scaleRate * delta
-        if (this.position.y > halfPath) this.alpha += alphaAdd * delta
+        if (this.position.y > this.halfPath) this.alpha += alphaAdd * delta
         else {
             this.alpha -= alphaSub * delta
             if (this.alpha < 0) {
@@ -1332,7 +1333,7 @@ function initFontStyles() {
 
         fly: new pixi_js__WEBPACK_IMPORTED_MODULE_0__.TextStyle({
             fontFamily: _loader__WEBPACK_IMPORTED_MODULE_1__.fonts.bold,
-            fontSize: 96,
+            fontSize: 64,
             fill: ['#112233', '#555555', '#112233'],
             align: 'right',
 
@@ -1598,6 +1599,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   checkLangRu: () => (/* binding */ checkLangRu),
 /* harmony export */   clickCeil: () => (/* binding */ clickCeil),
+/* harmony export */   flyTextLayer: () => (/* binding */ flyTextLayer),
 /* harmony export */   startGame: () => (/* binding */ startGame)
 /* harmony export */ });
 /* harmony import */ var _application__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./application */ "./dev_js/application.js");
@@ -1638,6 +1640,7 @@ function clickCeil(key) {
 let state = null
 let board = null
 let boardLayer = null
+let flyTextLayer = null
 
 function startGame() {
     state = (0,_state__WEBPACK_IMPORTED_MODULE_6__.initState)()
@@ -1646,6 +1649,7 @@ function startGame() {
     board = (0,_board__WEBPACK_IMPORTED_MODULE_2__["default"])( screenData, state )
     ;(0,_functions__WEBPACK_IMPORTED_MODULE_3__.smoothShowElement)( new _application__WEBPACK_IMPORTED_MODULE_0__.Layer( new _background__WEBPACK_IMPORTED_MODULE_1__["default"](screenData) ) , 'center', () => {
         boardLayer = new _application__WEBPACK_IMPORTED_MODULE_0__.Layer(board)
+        flyTextLayer = new _application__WEBPACK_IMPORTED_MODULE_0__.Layer()
         ;(0,_functions__WEBPACK_IMPORTED_MODULE_3__.smoothShowElement)( boardLayer )
     })
     
@@ -1760,11 +1764,11 @@ const sprites = {
     pointer: 'pointer_220x220px.png',
     lock: 'lock_116x126px.png',
     keys: 'keys_240x240px.png',
+    hummers: 'hammers_240x240px.png',
     effectYellow: 'effect_yellow_528x528px.png',
     effectPurple: 'effect_purple_528x528px.png',
     smoke: 'smoke_192x192px_25frames.json',
-    disappearance: 'disappearance_128x128px_20frames.json',
-    destroyer: 'destroyer_240x240px.png',
+    splash: 'splash_192x192px_20frames.json',
     logo: '5balls_876x568px.png',
     mars: 'mars_game_456x137px.png',
     buttons: 'buttons.json',
@@ -2251,6 +2255,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var _ball__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./ball */ "./dev_js/ball.js");
 /* harmony import */ var _board__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./board */ "./dev_js/board.js");
+/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./events */ "./dev_js/events.js");
+
 
 
 
@@ -2347,6 +2353,7 @@ class State {
                 this.keys--
                 this.turnForBonus = settings.nextKey
                 callback('lock')
+                if (this.keys === 0) (0,_events__WEBPACK_IMPORTED_MODULE_2__.changeBonus)()
             } else {
                 this.turnForBonus = this.turnForRemove
                 this.turnForRemove += settings.nextRemoveAdd
@@ -41971,7 +41978,7 @@ __webpack_require__.r(__webpack_exports__);
 // preload fonts
 pixi_js__WEBPACK_IMPORTED_MODULE_0__.Assets.addBundle('fonts', _loader__WEBPACK_IMPORTED_MODULE_1__.fonts)
 pixi_js__WEBPACK_IMPORTED_MODULE_0__.Assets.loadBundle('fonts').then( fontsData => {
-    // update font values be font family
+    // update font values by font family
     for(let key in fontsData) _loader__WEBPACK_IMPORTED_MODULE_1__.fonts[key] = fontsData[key].family
     ;(0,_fonts__WEBPACK_IMPORTED_MODULE_2__.initFontStyles)()
     ;(0,_loader__WEBPACK_IMPORTED_MODULE_1__.uploadAssets)( _game__WEBPACK_IMPORTED_MODULE_3__.startGame )

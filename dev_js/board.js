@@ -1,7 +1,7 @@
-import { Container, Sprite, Graphics, Text, settings } from "pixi.js"
+import { Container, Sprite, Graphics, Text } from "pixi.js"
 import { sprites, sounds } from "./loader"
 import { EventHub, events, activateUI } from './events'
-import { clickCeil, checkLangRu } from './game'
+import { clickCeil, checkLangRu, flyTextLayer } from './game'
 import getBall, { ballAnimationTime, ballKeys } from "./ball"
 import Lock from "./lock"
 import getStars from "./star"
@@ -43,6 +43,8 @@ const labelSettings = {
     colorsTextEn: 'NEXT\nCOLOR',
     keysTextRu: 'СЛЕДУЮЩИЙ\nКЛЮЧ',
     keysTextEn: 'NEXT\nKEY',
+    hammersTextRu: 'СЛЕДУЮЩИЙ\nМОЛОТ',
+    hammersTextEn: 'NEXT\nHAMMER',
     colorsKeysTextCenterY: 260,
 
     keysX: boardSettings.size - 326,
@@ -218,23 +220,29 @@ class Board extends Container {
         this.colorsText.position.y = labelSettings.colorsKeysTextCenterY
         this.addChild(this.colorsText)
 
-        this.keys = new Sprite(sprites.keys)
-        this.keys.width = this.keys.height = labelSettings.keysSize
-        this.keys.position.x = labelSettings.keysX
-        this.keys.position.y = labelSettings.keysY
-        this.addChild(this.keys)
-
         this.keysText = isLangRu ? labelSettings.keysTextRu : labelSettings.keysTextEn
         this.keysText = new Text( this.keysText, textStyles.scoreRecord )
         this.keysText.anchor.set( 0.5 )
         this.keysText.position.x = boardSettings.size - 190
         this.keysText.position.y = labelSettings.colorsKeysTextCenterY
+
+        this.keys = new Sprite(sprites.keys)
+        this.keys.width = this.keys.height = labelSettings.keysSize
+        this.keys.position.x = labelSettings.keysX
+        this.keys.position.y = labelSettings.keysY
+        
+        EventHub.on( events.changeBonus, () => {
+            this.keys.texture = sprites.hummers
+            this.keysText.text = isLangRu ? labelSettings.hammersTextRu : labelSettings.hammersTextEn
+        })
+
+        this.addChild(this.keys)
         this.addChild(this.keysText)
 
         this.turnsText = isLangRu ? labelSettings.turnsTextRu : labelSettings.turnsTextEn
         this.turnsText = new Text( this.turnsText, textStyles.scoreRecord )
         this.turnsText.anchor.set( 0.5 )
-        this.turnsText.position.x = boardSettings.size - 170
+        this.turnsText.position.x = boardSettings.size - 160
         this.turnsText.position.y = labelSettings.scoreRecordTextCenterY
         this.addChild(this.turnsText)
 
@@ -392,7 +400,7 @@ class Board extends Container {
         } else {
             this.nextBall.ceilKey = this.getRandomCeil()
         }
-        console.log()
+
         if (this.nextBall.ceilKey) { 
             playSound(sounds.swipe)
             const ceilKey = this.nextBall.ceilKey
@@ -400,7 +408,7 @@ class Board extends Container {
             this.addStarsForNextBall()
             this.addBall( ceilKey, color )
         }
-        else console.log( "GAME OVER" )
+        else alert( "GAME OVER" )
     }
 
     addStarsForNextBall() {
@@ -441,7 +449,6 @@ class Board extends Container {
     checkColors( key ) {
         // update key label
         this.turns.text = this.gameState.turnForBonus
-        if (this.gameState.keys === 0) this.keys.texture = sprites.destroyer
 
         const color = this.state[key].sprite.color
         // collect colors in arrays by directions from current ceil
@@ -521,7 +528,7 @@ class Board extends Container {
                         const comboRange = lineIndex + 1
                         const scoreData = this.gameState.getScore()
                         const resultScore = score * comboRange
-                        this.addChild( new FlyingText('+' + resultScore) )
+                        flyTextLayer.addChild( new FlyingText('+' + resultScore) )
                         this.gameState.setScore(resultScore)
                         this.score.text = this.scoreText + scoreData.score
                         this.scoreRecord.text = this.scoreRecordText + scoreData.record
@@ -536,37 +543,28 @@ class Board extends Container {
                 }
             }
         } else {
-            if (!this.nextBall.ceilKey) this.nextBall.ceilKey = this.getRandomCeil()
-            if (this.nextBall.ceilKey) {
-                let delay = 0
+            let delay = 300
+            let helpCeil = null
 
-                if (this.clickTarget === boardCeilFillKeys.lock) {
-                    this.addChild( new Bonus(true, boardSettings.size / 2) )
-                    this.isOnHelp = true
-                    const ceil = this.getRandomCeil( boardCeilFillKeys.lock )
-                    if (ceil) {
-                        const helpX = this.state[ceil].position.x
-                        const helpY = this.state[ceil].position.y
-                        this.helpFinger.showHelp( helpX, helpY )
-                        delay = bonusAnimationTime
-                    }
-                }
-
-                if (this.clickTarget === boardCeilFillKeys.ball) {
-                    this.addChild( new Bonus(false, boardSettings.size / 2) )
-                    this.isOnHelp = true
-                    const ceil = this.getRandomCeil( boardCeilFillKeys.ball )
-                    if (ceil) {
-                        const helpX = this.state[ceil].position.x
-                        const helpY = this.state[ceil].position.y
-                        this.helpFinger.showHelp( helpX, helpY )
-                        delay = bonusAnimationTime
-                    }
-                }
-
-                setTimeout( () => activateUI(true), delay)
+            if (this.clickTarget === boardCeilFillKeys.lock) {
+                setTimeout( () => this.addChild( new Bonus(true, boardSettings.size / 2) ), delay)
+                helpCeil = this.getRandomCeil( boardCeilFillKeys.lock )
+            } else if (this.clickTarget === boardCeilFillKeys.ball) {
+                setTimeout( () => this.addChild( new Bonus(false, boardSettings.size / 2) ), delay)
+                helpCeil = this.getRandomCeil( boardCeilFillKeys.ball )
             }
-            else console.log( "GAME OVER" )
+
+            if (helpCeil) {
+                this.isOnHelp = true
+                const helpX = this.state[helpCeil].position.x
+                const helpY = this.state[helpCeil].position.y
+                this.helpFinger.showHelp( helpX, helpY )
+                delay += bonusAnimationTime
+            }
+
+            if (!this.nextBall.ceilKey) this.nextBall.ceilKey = this.getRandomCeil()
+            if (this.nextBall.ceilKey || this.isOnHelp) setTimeout( () => activateUI(true), delay)
+            else alert( "GAME OVER" )
         }
     }
 
@@ -597,10 +595,3 @@ export default function getBoard(screenData, state) {
     if (!board) board = new Board( screenData, state )
     return board
 }
-
-addEventListener('keyup', (key) => {
-    if (key.code === 'Space' && board) {
-        console.log(board.nextBall)
-        console.log(board.state)
-    }
-})

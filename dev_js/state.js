@@ -1,5 +1,6 @@
 import { ballKeys } from './ball'
 import { getCeilsClone } from './board'
+import { changeBonus } from './events'
 
 const ballsOrder = [
     { color: ballKeys.red, closed: 0},
@@ -94,6 +95,7 @@ class State {
                 this.keys--
                 this.turnForBonus = settings.nextKey
                 callback('lock')
+                if (this.keys === 0) changeBonus()
             } else {
                 this.turnForBonus = this.turnForRemove
                 this.turnForRemove += settings.nextRemoveAdd
